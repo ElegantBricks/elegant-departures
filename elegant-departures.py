@@ -16,7 +16,7 @@ mode = "fantasy"
 #  Key = API key obtained from their developer site
 #  URL = API endpoint (should not change normally or often)
 #  crs = CRS code for the station to show data for.
-key = "a238f3ea-8ed0-4a56-a9d9-9b6a28013a1f"
+key = ""
 url = 'https://lite.realtime.nationalrail.co.uk/OpenLDBWS/ldb11.asmx'
 crs = "WIM"
 
