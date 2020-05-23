@@ -44,9 +44,10 @@ import json
 import logging
 import argparse
 import random
+import datetime
 from PIL import ImageFont
 from time import gmtime, strftime, ctime, mktime, localtime
-from datetime import datetime, timezone, timedelta
+from datetime import date, datetime, time, timezone, timedelta
 from pathlib import Path
 
 try:
