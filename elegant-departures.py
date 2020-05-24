@@ -1,7 +1,6 @@
 # Train Platform Data Script
 # Copyright (c) 2020 Oliver Hallifax, Elegant Bricks
  
-
 # Modify values in these sections with care to customise your display 
 
 #Section 1
@@ -9,16 +8,16 @@
 #If set to "live" then the values in Section 2 are required to use the National Rail Enquiries real-time data lookup service.
 #You will need to register for an API key for this service.
 #If set to "fantasy" then the values in Section 3 are used to generate realistic looking train data with fake station names.
-mode = "fantasy"
+mode = "live"
 
 #Section 2
 #  For Realtime National Rail data:
 #  Key = API key obtained from their developer site
 #  URL = API endpoint (should not change normally or often)
 #  crs = CRS code for the station to show data for.
-key = ""
+key = "a238f3ea-8ed0-4a56-a9d9-9b6a28013a1f"
 url = 'https://lite.realtime.nationalrail.co.uk/OpenLDBWS/ldb11.asmx'
-crs = "WIM"
+crs = "WNR"
 
 #Section 3
 #  For fantasy timetable data:
@@ -27,17 +26,19 @@ crs = "WIM"
 #  latetrainpercent = percentage of trains which run late, from 0 to 100%.  Specify just a number, without a % symbol.
 #  latetrainmax = maximum number of minutes trains can run late by.
 #  preventduplicates = True or False. If set to True will ensure no duplicate destinations ever appear. Requires at least 3 destination towns though!
+#  magic = percentage of trains which get moved to platform 9 3/4.  Keep this number low - the default is 3.
 
 #  Town names must fit in a 22 character field
-#  e.g. this is 20 characters
+#  e.g. this example is 20 characters
 #  1234567890123456789012
 #  Vancouver Brick City
 
-towns = ["Stud City","Brickston","Attic Brick City","Murp Grove","Brickville","Bricknell","Bricksburg","Legollywood","Legoburg", "Vancouver Brick City","Micro:Bit City","Seattle Brick City"]
+towns = ["Stud City","Brickston","Attic Brick City","Murp Grove","Brickville","Bricknell","Bricksburg","Legollywood","Legoburg", "Vancouver Brick City","Micro:Bit City","Seattle Brick City", "Brickstown on Sea"]
 platforms = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 latetrainpercent = 70
 latetrainmax = 4
 preventduplicates = True
+magic = 3
 
 import os
 import sys
@@ -103,7 +104,7 @@ def get_destination():
         while found == False:
             dupe = False
             destination = destination = random.choice(towns)
-            if (random.choice(range(0,100))>97):
+            if (random.choice(range(0,100))>(100-magic)):
                 destination = "Hogwarts"
             for row in rows:
                 #Check all the rows to see if this is already in there somewhere
@@ -113,7 +114,7 @@ def get_destination():
                 found = True
     else:
         destination = destination = random.choice(towns)
-        if (random.choice(range(0,100))>97):
+        if (random.choice(range(0,100))>(100-magic)):
             destination = "Hogwarts"
     
     return (destination)
@@ -174,9 +175,7 @@ def update_fantasy_data():
         
         #Bodge the time using the hours and minutes on the screen    
         traintimestring = str(currenttime)[0:10] + " " + hours + ":" + mins + ":00.000000"
-		#traintimestring is now in format 2020-05-31 08:34:00.000000
         traindatetime = datetime(int(traintimestring[0:4]),int(traintimestring[5:7]),int(traintimestring[8:10]),int(traintimestring[11:13]),int(traintimestring[14:16]))
-        #traindatetime = datetime.fromisoformat(traintimestring)
         #then check if it's more than 12 hours different as that's clearly a time just past midnight
         diff = traindatetime - currenttime
         if diff.total_seconds() < -1000:
@@ -205,9 +204,8 @@ def update_fantasy_data():
         platform = str(random.choice(platforms))
         destination = get_destination()
         
-        if (random.choice(range(0,100))>95):
+        if destination == "Hogwarts":
             platform = "9 3/4"
-            destination = "Hogwarts"
         
         newrow = hour + ":" + minute + " " + destination.ljust(23, ' ') + platform.ljust(6,' ') + str(eta)
 
@@ -241,31 +239,39 @@ def fetch_nre_board():
                 </ns0:GetDepartureBoardRequest>
             </SOAP-ENV:Body>
             </SOAP-ENV:Envelope>
-
         '''
 
         payload = xml_payload.replace("{KEY}", key).replace("{CRS}", crs)
         response = requests.post(url, data=payload, headers=headers)
         
         data = xmltodict.parse(response.content)
+	
         services = data["soap:Envelope"]["soap:Body"]["GetDepartureBoardResponse"]["GetStationBoardResult"]["lt7:trainServices"]["lt7:service"]
         
         if type(services) is not list:
             services = [services]
 
         for service in services:
+				try:
+                    destination = service["lt5:destination"]["lt4:location"]["lt4:locationName"]
+                    destination = destination.ljust(22, ' ')
+				except Exception as e:
+					destination = ""
             
-                destination = service["lt5:destination"]["lt4:location"]["lt4:locationName"]
-                destination = destination.ljust(22, ' ')
-            
-                platform = service["lt4:platform"]
-                platform = platform.ljust(5, ' ')
+				try:
+                    platform = service["lt4:platform"]
+                except Exception as e:
+				    platform = ""
+				
+				platform = platform.ljust(5, ' ')
                 rows.append(service["lt4:std"] + " " + destination + " " + platform + " " + service["lt4:etd"])
               
        
     except Exception as e:
         logging.critical(e, exc_info=False) 
-        print("Error doing stuff")
+        rows.append("ERROR : Cannot get live data")
+        print("Error getting live data from National Rail Enquiries")
+        print(str(e))
 
 
 def show_data(device):
@@ -387,13 +393,13 @@ def main():
             time.sleep(1)
 
         elif mode=="live":
-			#check a key has been provided
+            #check a key has been provided
             if key == "":
                 print("Error : in Live mode an API key is required from National Rail Enquiries.  You require a Darwin 'OpenLDBWS' free developer key.")
                 print("Please check at https://www.nationalrail.co.uk/100296.aspx for further information on this service.")
                 sys.exit()
-		
-		
+        
+        
             #Live data - call the API every 30 seconds
             if i==0:
                 fetch_nre_board()
