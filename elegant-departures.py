@@ -17,7 +17,7 @@ mode = "live"
 #  crs = CRS code for the station to show data for.
 key = "a238f3ea-8ed0-4a56-a9d9-9b6a28013a1f"
 url = 'https://lite.realtime.nationalrail.co.uk/OpenLDBWS/ldb11.asmx'
-crs = "WNR"
+crs = "CLJ"
 
 #Section 3
 #  For fantasy timetable data:
