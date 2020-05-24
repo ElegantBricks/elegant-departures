@@ -245,25 +245,25 @@ def fetch_nre_board():
         response = requests.post(url, data=payload, headers=headers)
         
         data = xmltodict.parse(response.content)
-	
+    
         services = data["soap:Envelope"]["soap:Body"]["GetDepartureBoardResponse"]["GetStationBoardResult"]["lt7:trainServices"]["lt7:service"]
         
         if type(services) is not list:
             services = [services]
 
         for service in services:
-				try:
+                try:
                     destination = service["lt5:destination"]["lt4:location"]["lt4:locationName"]
                     destination = destination.ljust(22, ' ')
-				except Exception as e:
-					destination = ""
+                except Exception as e:
+                    destination = ""
             
-				try:
+                try:
                     platform = service["lt4:platform"]
                 except Exception as e:
-				    platform = ""
-				
-				platform = platform.ljust(5, ' ')
+                    platform = ""
+                
+                platform = platform.ljust(5, ' ')
                 rows.append(service["lt4:std"] + " " + destination + " " + platform + " " + service["lt4:etd"])
               
        
