@@ -276,10 +276,12 @@ def fetch_nre_board():
 
 def show_data(device):
     
+    pathname = os.path.dirname(sys.argv[0])        
+
     # use custom fonts
-    font1 = ImageFont.truetype("Cousine-Bold.ttf", 11)
-    font2 = ImageFont.truetype("CourierPrime-Regular.ttf", 10)
-    font3 = ImageFont.truetype("CourierPrime-Regular.ttf", 14)
+    font1 = ImageFont.truetype(pathname + "/Cousine-Bold.ttf", 11)
+    font2 = ImageFont.truetype(pathname + "/CourierPrime-Regular.ttf", 10)
+    font3 = ImageFont.truetype(pathname + "/CourierPrime-Regular.ttf", 14)
     
 
     with canvas(device) as draw:
@@ -293,10 +295,12 @@ def show_data(device):
  
 def show_startup(device):
     
+    pathname = os.path.dirname(sys.argv[0])        
+	
     # use custom fonts
-    font1 = ImageFont.truetype("CourierPrime-Regular.ttf", 8)
-    font2 = ImageFont.truetype("CourierPrime-Regular.ttf", 10)
-    font3 = ImageFont.truetype("CourierPrime-Regular.ttf", 15)
+    font1 = ImageFont.truetype(pathname + "/CourierPrime-Regular.ttf", 8)
+    font2 = ImageFont.truetype(pathname + "/CourierPrime-Regular.ttf", 10)
+    font3 = ImageFont.truetype(pathname + "/CourierPrime-Regular.ttf", 15)
     
 
     with canvas(device) as draw:
