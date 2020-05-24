@@ -26,6 +26,7 @@ crs = "WIM"
 #  platforms = list of platform numbers, separated by a comma
 #  latetrainpercent = percentage of trains which run late, from 0 to 100%.  Specify just a number, without a % symbol.
 #  latetrainmax = maximum number of minutes trains can run late by.
+#  preventduplicates = True or False. If set to True will ensure no duplicate destinations ever appear. Requires at least 3 destination towns though!
 
 #  Town names must fit in a 22 character field
 #  e.g. this is 20 characters
@@ -36,6 +37,7 @@ towns = ["Stud City","Brickston","Attic Brick City","Murp Grove","Brickville","B
 platforms = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 latetrainpercent = 70
 latetrainmax = 4
+preventduplicates = True
 
 import os
 import sys
@@ -44,10 +46,9 @@ import json
 import logging
 import argparse
 import random
-import datetime
 from PIL import ImageFont
 from time import gmtime, strftime, ctime, mktime, localtime
-from datetime import date, datetime, time, timezone, timedelta
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 try:
@@ -95,7 +96,27 @@ def get_eta(scheduled):
         
     else:
         return "On time"
-        
+
+def get_destination():
+    if preventduplicates ==  True:
+        found = False
+        while found == False:
+            dupe = False
+            destination = destination = random.choice(towns)
+            if (random.choice(range(0,100))>97):
+                destination = "Hogwarts"
+            for row in rows:
+                #Check all the rows to see if this is already in there somewhere
+                if destination in row:
+                    dupe = True
+            if dupe == False:
+                found = True
+    else:
+        destination = destination = random.choice(towns)
+        if (random.choice(range(0,100))>97):
+            destination = "Hogwarts"
+    
+    return (destination)
 
 def build_fantasy_data():
     #wipe our global list of rows
@@ -120,11 +141,10 @@ def build_fantasy_data():
             eta = etastring[11:13] + ":" + etastring[14:16]
         
         platform = str(random.choice(platforms))
-        destination = random.choice(towns)
+        destination = get_destination()
         
-        if (random.choice(range(0,100))>95):
+        if destination == "Hogwarts":
             platform = "9 3/4"
-            destination = "Hogwarts"
         
         newrow = hour + ":" + minute + " " + destination.ljust(23, ' ') + platform.ljust(6,' ') + str(eta)
         rows.append(newrow)
@@ -154,7 +174,9 @@ def update_fantasy_data():
         
         #Bodge the time using the hours and minutes on the screen    
         traintimestring = str(currenttime)[0:10] + " " + hours + ":" + mins + ":00.000000"
-        traindatetime = datetime.fromisoformat(traintimestring)
+		#traintimestring is now in format 2020-05-31 08:34:00.000000
+        traindatetime = datetime(int(traintimestring[0:4]),int(traintimestring[5:7]),int(traintimestring[8:10]),int(traintimestring[11:13]),int(traintimestring[14:16]))
+        #traindatetime = datetime.fromisoformat(traintimestring)
         #then check if it's more than 12 hours different as that's clearly a time just past midnight
         diff = traindatetime - currenttime
         if diff.total_seconds() < -1000:
@@ -181,7 +203,7 @@ def update_fantasy_data():
             eta = etastring[11:13] + ":" + etastring[14:16]
   
         platform = str(random.choice(platforms))
-        destination = random.choice(towns)
+        destination = get_destination()
         
         if (random.choice(range(0,100))>95):
             platform = "9 3/4"
