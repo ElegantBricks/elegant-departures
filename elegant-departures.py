@@ -1,7 +1,7 @@
 # Train Platform Data Script
 # Copyright (c) 2020 Oliver Hallifax, Elegant Bricks
 
-# Modify values in these sections with care to customise your display 
+# Modify values in these sections with care to customise your display
 
 #Section 1
 #set mode to "fantasy" or "live"
@@ -16,10 +16,10 @@ mode = "fantasy"
 #  URL = API endpoint (should not change normally or often)
 #  crs = CRS code for the station to show data for.
 #  dst = (OPTIONAL) CRS code for a destination station to filter the data for.  For all trains to Waterloo from Clapham Junction use 'crs = "CLJ"' and 'dst = "WAT"'.
-key = "a873c9af-3ef9-3e36-d3d7-9b4f39014a1f"
+key = ""
 url = 'https://lite.realtime.nationalrail.co.uk/OpenLDBWS/ldb11.asmx'
-crs = "CLJ"
-dst = "BAL"
+crs = "WAT"
+dst = "WNR"
 
 #Section 3
 #  For fantasy timetable data:
@@ -35,12 +35,12 @@ dst = "BAL"
 #  1234567890123456789012
 #  Vancouver Brick City
 
-towns = ["Stud City","Brickston","Attic Brick City","Murp Grove","Brickville","Bricknell","Bricksburg","Legollywood","Legoburg", "Vancouver Brick City","Micro:Bit City","Seattle Brick City", "Brickstown on Sea"]
+towns = ["Stud City","Brickston","Attic Brick City","Murp Grove","Brickville","Bricknell","Bricksburg","Legollywood","Legoburg", "Vancouver Brick City","Micro:Bit City","Seattle Brick City", "Brickstown on Sea", "Seahaven"]
 platforms = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-latetrainpercent = 70
+latetrainpercent = 80
 latetrainmax = 4
 preventduplicates = True
-magic = 3
+magic = 2
 
 import os
 import sys
@@ -120,7 +120,7 @@ def get_destination():
         destination = destination = random.choice(towns)
         if (random.choice(range(0,100))>(100-magic)):
             destination = "Hogwarts"
-    
+
     return (destination)
 
 def build_fantasy_data():
@@ -176,7 +176,7 @@ def update_fantasy_data():
             mins = traintime[3:5]
             #print(traintime)
 
-        #Bodge the time using the hours and minutes on the screen    
+        #Bodge the time using the hours and minutes on the screen
         traintimestring = str(currenttime)[0:10] + " " + hours + ":" + mins + ":00.000000"
         traindatetime = datetime(int(traintimestring[0:4]),int(traintimestring[5:7]),int(traintimestring[8:10]),int(traintimestring[11:13]),int(traintimestring[14:16]))
         #then check if it's more than 12 hours different as that's clearly a time just past midnight
@@ -219,7 +219,7 @@ def update_fantasy_data():
 
 def fetch_nre_board():
 
-    try:      
+    try:
         #Clear the whole board each time as data is coming live from NRE system.
         rows.clear()
 
@@ -277,7 +277,7 @@ def fetch_nre_board():
                 rows.append(newrow)
 
     except Exception as e:
-        logging.critical(e, exc_info=False) 
+        logging.critical(e, exc_info=False)
         rows.append("ERROR : Cannot get live data")
         print("Error getting live data from National Rail Enquiries")
         print(str(e))
@@ -300,7 +300,7 @@ def show_data(device):
             for index in range(maxrows):
                 draw.text((0, index*12+15), rows[index], font=font2, fill="white")
             draw.text((100, 52), time.strftime("%H:%M:%S", time.localtime()), font=font3, fill="white")
- 
+
 def show_startup(device):
 
     pathname = os.path.dirname(os.path.abspath(__file__))
@@ -437,4 +437,3 @@ logging.basicConfig(
 )
 # ignore PIL debug messages
 logging.getLogger('PIL').setLevel(logging.ERROR)
-
